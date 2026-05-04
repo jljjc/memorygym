@@ -3,947 +3,582 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Memory Trainer</title>
+<title>MemoryGym 🧠</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #0a0a12;
-    --card: #13131f;
-    --card2: #1a1a2e;
-    --accent: #f7c948;
-    --accent2: #ff6b6b;
-    --accent3: #4ecdc4;
-    --text: #f0f0f8;
-    --muted: #8888aa;
-    --border: #2a2a40;
-    --green: #56cf85;
-    --radius: 16px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    min-height: 100vh;
-    padding: 0 0 40px 0;
-  }
-  /* background grid */
-  body::before {
-    content: '';
-    position: fixed;
-    inset: 0;
-    background-image:
-      linear-gradient(rgba(247,201,72,0.03) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(247,201,72,0.03) 1px, transparent 1px);
-    background-size: 40px 40px;
-    pointer-events: none;
-    z-index: 0;
-  }
-
-  header {
-    background: linear-gradient(135deg, #13131f 0%, #1a1a2e 100%);
-    border-bottom: 1px solid var(--border);
-    padding: 20px 24px 16px;
-    position: relative;
-    z-index: 1;
-  }
-  .header-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 700px;
-    margin: 0 auto;
-  }
-  .logo {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2rem;
-    letter-spacing: 2px;
-    color: var(--accent);
-    text-shadow: 0 0 24px rgba(247,201,72,0.4);
-  }
-  .streak {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 6px 14px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--accent);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  main {
-    max-width: 700px;
-    margin: 0 auto;
-    padding: 24px 16px 0;
-    position: relative;
-    z-index: 1;
-  }
-
-  /* Day nav */
-  .day-nav {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    scrollbar-width: none;
-    margin-bottom: 24px;
-  }
-  .day-nav::-webkit-scrollbar { display: none; }
-  .day-btn {
-    flex-shrink: 0;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    border-radius: 10px;
-    padding: 8px 14px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-  .day-btn:hover { border-color: var(--accent); color: var(--accent); }
-  .day-btn.active {
-    background: var(--accent);
-    color: #0a0a12;
-    border-color: var(--accent);
-  }
-  .day-btn.done { border-color: var(--green); color: var(--green); }
-
-  /* Section title */
-  .section-label {
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  /* Challenge card */
-  .challenge-header {
-    background: linear-gradient(135deg, var(--card) 60%, var(--card2));
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 22px;
-    margin-bottom: 16px;
-  }
-  .challenge-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    padding: 4px 10px;
-    border-radius: 6px;
-    margin-bottom: 12px;
-  }
-  .tag-recall { background: rgba(247,201,72,0.15); color: var(--accent); }
-  .tag-visual { background: rgba(78,205,196,0.15); color: var(--accent3); }
-  .tag-lang { background: rgba(255,107,107,0.15); color: var(--accent2); }
-  .tag-spatial { background: rgba(86,207,133,0.15); color: var(--green); }
-
-  .challenge-title {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.7rem;
-    letter-spacing: 1px;
-    line-height: 1.1;
-    margin-bottom: 8px;
-  }
-  .challenge-desc {
-    color: var(--muted);
-    font-size: 0.9rem;
-    line-height: 1.6;
-  }
-
-  /* Items grid */
-  .items-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-    gap: 10px;
-    margin: 18px 0;
-  }
-  .item-chip {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 12px;
-    font-size: 0.88rem;
-    font-weight: 500;
-    text-align: center;
-    transition: all 0.2s;
-  }
-  .item-chip span { display: block; font-size: 1.2rem; margin-bottom: 4px; }
-  .item-chip.revealed {
-    border-color: var(--accent3);
-    background: rgba(78,205,196,0.08);
-    color: var(--accent3);
-  }
-  .item-chip.missed {
-    border-color: var(--accent2);
-    background: rgba(255,107,107,0.08);
-    color: var(--accent2);
-  }
-
-  /* Recall phase */
-  .recall-area {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 18px;
-    margin-bottom: 16px;
-  }
-  .recall-area textarea {
-    width: 100%;
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    padding: 12px;
-    resize: none;
-    height: 90px;
-    outline: none;
-    transition: border 0.2s;
-  }
-  .recall-area textarea:focus { border-color: var(--accent); }
-  .recall-area textarea::placeholder { color: var(--muted); }
-
-  /* Score display */
-  .score-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-top: 14px;
-  }
-  .score-badge {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 2.4rem;
-    color: var(--accent);
-    line-height: 1;
-  }
-  .score-label { color: var(--muted); font-size: 0.85rem; }
-  .score-stars { font-size: 1.3rem; }
-
-  /* Buttons */
-  .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px 22px;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.92rem;
-    font-weight: 700;
-    cursor: pointer;
-    border: none;
-    transition: all 0.18s;
-    letter-spacing: 0.3px;
-  }
-  .btn-primary { background: var(--accent); color: #0a0a12; }
-  .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(247,201,72,0.3); }
-  .btn-secondary { background: var(--card2); border: 1px solid var(--border); color: var(--text); }
-  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
-  .btn-danger { background: rgba(255,107,107,0.15); border: 1px solid var(--accent2); color: var(--accent2); }
-  .btn-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
-
-  /* Timer */
-  .timer-ring {
-    width: 64px; height: 64px;
-    position: relative;
-    flex-shrink: 0;
-  }
-  .timer-ring svg { transform: rotate(-90deg); }
-  .timer-ring circle { transition: stroke-dashoffset 1s linear; }
-  .timer-num {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    color: var(--accent);
-  }
-
-  /* Progress bar */
-  .progress-bar {
-    height: 5px;
-    background: var(--border);
-    border-radius: 99px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent3));
-    border-radius: 99px;
-    transition: width 0.4s ease;
-  }
-
-  /* Tips */
-  .tip-card {
-    background: rgba(78,205,196,0.07);
-    border: 1px solid rgba(78,205,196,0.2);
-    border-radius: var(--radius);
-    padding: 14px 16px;
-    margin-bottom: 16px;
-    font-size: 0.88rem;
-    color: var(--accent3);
-    line-height: 1.6;
-  }
-  .tip-card strong { display: block; font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 4px; opacity: 0.7; }
-
-  /* Phase banner */
-  .phase-banner {
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 14px;
-  }
-  .phase-icon { font-size: 1.6rem; }
-  .phase-text { font-weight: 700; font-size: 0.95rem; }
-  .phase-sub { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
-
-  /* Flashcard */
-  .flashcard-wrap {
-    perspective: 800px;
-    margin-bottom: 16px;
-  }
-  .flashcard {
-    width: 100%;
-    height: 160px;
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.5s cubic-bezier(.4,0,.2,1);
-    cursor: pointer;
-    border-radius: var(--radius);
-  }
-  .flashcard.flipped { transform: rotateY(180deg); }
-  .fc-front, .fc-back {
-    position: absolute;
-    inset: 0;
-    border-radius: var(--radius);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    backface-visibility: hidden;
-    padding: 20px;
-    border: 1px solid var(--border);
-  }
-  .fc-front {
-    background: linear-gradient(135deg, var(--card), var(--card2));
-  }
-  .fc-back {
-    background: linear-gradient(135deg, rgba(247,201,72,0.1), rgba(78,205,196,0.08));
-    border-color: var(--accent3);
-    transform: rotateY(180deg);
-  }
-  .fc-label { font-size: 0.7rem; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
-  .fc-word { font-family: 'Bebas Neue', sans-serif; font-size: 2.2rem; letter-spacing: 1px; }
-  .fc-hint { font-size: 0.85rem; color: var(--muted); margin-top: 6px; }
-  .fc-tap { font-size: 0.75rem; color: var(--muted); margin-top: 14px; }
-
-  /* Weekly sheet */
-  .week-grid { display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px; }
-  .week-row {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 14px 16px;
-    display: flex;
-    align-items: flex-start;
-    gap: 14px;
-  }
-  .week-day {
-    font-family: 'Bebas Neue', sans-serif;
-    font-size: 1.3rem;
-    color: var(--accent);
-    min-width: 80px;
-    line-height: 1.1;
-  }
-  .week-day small { display: block; font-family: 'DM Sans', sans-serif; font-size: 0.68rem; color: var(--muted); font-weight: 600; letter-spacing: 1px; text-transform: uppercase; }
-  .week-task { font-size: 0.88rem; line-height: 1.6; color: var(--text); }
-  .week-task strong { color: var(--accent3); }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--card2);
-    border: 1px solid var(--border);
-    border-radius: 99px;
-    padding: 10px 20px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    color: var(--text);
-    z-index: 9999;
-    transition: transform 0.3s ease;
-    white-space: nowrap;
-    pointer-events: none;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* Tab bar */
-  .tab-bar {
-    display: flex;
-    gap: 6px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 5px;
-    margin-bottom: 20px;
-  }
-  .tab-btn {
-    flex: 1;
-    padding: 9px;
-    border-radius: 8px;
-    border: none;
-    background: transparent;
-    color: var(--muted);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.82rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    text-align: center;
-  }
-  .tab-btn.active { background: var(--accent); color: #0a0a12; }
-
-  .hidden { display: none !important; }
-
-  /* Animations */
-  @keyframes pop {
-    0% { transform: scale(0.85); opacity: 0; }
-    70% { transform: scale(1.04); }
-    100% { transform: scale(1); opacity: 1; }
-  }
-  .pop { animation: pop 0.3s ease forwards; }
-
-  @keyframes shimmer {
-    0% { background-position: -200% center; }
-    100% { background-position: 200% center; }
-  }
-
-  .congrats {
-    text-align: center;
-    padding: 30px 20px;
-  }
-  .congrats .big { font-family: 'Bebas Neue', sans-serif; font-size: 3rem; color: var(--accent); letter-spacing: 2px; }
-  .congrats p { color: var(--muted); margin-top: 8px; }
+  :root{--bg:#0a0a12;--card:#13131f;--card2:#1a1a2e;--gold:#f7c948;--teal:#4ecdc4;--red:#ff6b6b;--green:#56cf85;--purple:#a78bfa;--text:#f0f0f8;--muted:#8888aa;--border:#2a2a40;--radius:16px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;padding:0 0 48px}
+  body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(247,201,72,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(247,201,72,.03) 1px,transparent 1px);background-size:40px 40px;pointer-events:none;z-index:0}
+  header{background:linear-gradient(135deg,#13131f,#1a1a2e);border-bottom:1px solid var(--border);padding:16px 20px 12px;position:relative;z-index:1}
+  .header-row{display:flex;align-items:center;justify-content:space-between;max-width:700px;margin:0 auto}
+  .logo{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:2px;color:var(--gold);text-shadow:0 0 24px rgba(247,201,72,.4)}
+  .streak{background:var(--card2);border:1px solid var(--border);border-radius:99px;padding:5px 13px;font-size:.82rem;font-weight:700;color:var(--gold);display:flex;align-items:center;gap:5px}
+  main{max-width:700px;margin:0 auto;padding:20px 14px 0;position:relative;z-index:1}
+  .progress-bar{height:4px;background:var(--border);border-radius:99px;margin-bottom:18px;overflow:hidden}
+  .progress-fill{height:100%;background:linear-gradient(90deg,var(--gold),var(--teal));border-radius:99px;transition:width .4s ease}
+  .tab-bar{display:flex;gap:5px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:4px;margin-bottom:18px}
+  .tab-btn{flex:1;padding:8px 4px;border-radius:8px;border:none;background:transparent;color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.78rem;font-weight:700;cursor:pointer;transition:all .2s;text-align:center}
+  .tab-btn.active{background:var(--gold);color:#0a0a12}
+  .diff-row{display:flex;gap:8px;margin-bottom:16px}
+  .diff-btn{flex:1;padding:9px 6px;border-radius:10px;border:1.5px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.8rem;font-weight:700;cursor:pointer;text-align:center;transition:all .2s}
+  .diff-btn.easy.active{border-color:var(--green);background:rgba(86,207,133,.12);color:var(--green)}
+  .diff-btn.medium.active{border-color:var(--gold);background:rgba(247,201,72,.12);color:var(--gold)}
+  .diff-btn.hard.active{border-color:var(--red);background:rgba(255,107,107,.12);color:var(--red)}
+  .diff-btn.easy:hover{border-color:var(--green);color:var(--green)}
+  .diff-btn.medium:hover{border-color:var(--gold);color:var(--gold)}
+  .diff-btn.hard:hover{border-color:var(--red);color:var(--red)}
+  .topic-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:16px;scrollbar-width:none}
+  .topic-row::-webkit-scrollbar{display:none}
+  .topic-btn{flex-shrink:0;padding:6px 12px;border-radius:8px;border:1px solid var(--border);background:var(--card);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:.75rem;font-weight:700;cursor:pointer;transition:all .2s;white-space:nowrap}
+  .topic-btn.active{background:var(--card2);border-color:var(--teal);color:var(--teal)}
+  .challenge-header{background:linear-gradient(135deg,var(--card) 60%,var(--card2));border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin-bottom:14px}
+  .challenge-tag{display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:3px 9px;border-radius:6px;margin-bottom:10px}
+  .tag-science{background:rgba(78,205,196,.15);color:var(--teal)}
+  .tag-geo{background:rgba(86,207,133,.15);color:var(--green)}
+  .tag-history{background:rgba(247,201,72,.15);color:var(--gold)}
+  .tag-tech{background:rgba(167,139,250,.15);color:var(--purple)}
+  .tag-sports{background:rgba(255,107,107,.15);color:var(--red)}
+  .tag-language{background:rgba(247,201,72,.15);color:var(--gold)}
+  .diff-badge{display:inline-block;font-size:.65rem;font-weight:800;padding:2px 7px;border-radius:99px;margin-left:8px;vertical-align:middle}
+  .diff-easy{background:rgba(86,207,133,.2);color:var(--green)}
+  .diff-medium{background:rgba(247,201,72,.2);color:var(--gold)}
+  .diff-hard{background:rgba(255,107,107,.2);color:var(--red)}
+  .challenge-title{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;margin-bottom:6px;line-height:1.1}
+  .challenge-desc{color:var(--muted);font-size:.88rem;line-height:1.6}
+  .items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px;margin:16px 0}
+  .item-chip{background:var(--card2);border:1px solid var(--border);border-radius:9px;padding:9px 10px;font-size:.85rem;font-weight:500;text-align:center;transition:all .2s}
+  .item-chip span{display:block;font-size:1.1rem;margin-bottom:3px}
+  .item-chip.revealed{border-color:var(--teal);background:rgba(78,205,196,.08);color:var(--teal)}
+  .recall-area{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+  .recall-area textarea{width:100%;background:var(--card2);border:1px solid var(--border);border-radius:9px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:.9rem;padding:11px;resize:none;height:88px;outline:none;transition:border .2s}
+  .recall-area textarea:focus{border-color:var(--gold)}
+  .recall-area textarea::placeholder{color:var(--muted)}
+  .score-badge{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:var(--gold);line-height:1}
+  .score-row{display:flex;align-items:center;gap:12px;margin-top:12px}
+  .score-label{color:var(--muted);font-size:.83rem}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;border-radius:9px;font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:700;cursor:pointer;border:none;transition:all .18s}
+  .btn-primary{background:var(--gold);color:#0a0a12}
+  .btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(247,201,72,.3)}
+  .btn-secondary{background:var(--card2);border:1px solid var(--border);color:var(--text)}
+  .btn-secondary:hover{border-color:var(--gold);color:var(--gold)}
+  .btn-danger{background:rgba(255,107,107,.15);border:1px solid var(--red);color:var(--red)}
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .timer-ring{width:60px;height:60px;position:relative;flex-shrink:0}
+  .timer-ring svg{transform:rotate(-90deg)}
+  .timer-ring circle{transition:stroke-dashoffset 1s linear}
+  .timer-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold)}
+  .tip-card{background:rgba(78,205,196,.07);border:1px solid rgba(78,205,196,.2);border-radius:var(--radius);padding:12px 14px;margin-bottom:14px;font-size:.86rem;color:var(--teal);line-height:1.6}
+  .tip-card strong{display:block;font-size:.72rem;letter-spacing:1px;text-transform:uppercase;margin-bottom:3px;opacity:.7}
+  .phase-banner{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .phase-icon{font-size:1.4rem}
+  .phase-text{font-weight:700;font-size:.92rem}
+  .phase-sub{font-size:.78rem;color:var(--muted);margin-top:2px}
+  .flashcard-wrap{perspective:800px;margin-bottom:14px}
+  .flashcard{width:100%;height:150px;position:relative;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);cursor:pointer;border-radius:var(--radius)}
+  .flashcard.flipped{transform:rotateY(180deg)}
+  .fc-front,.fc-back{position:absolute;inset:0;border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;justify-content:center;backface-visibility:hidden;padding:18px;border:1px solid var(--border)}
+  .fc-front{background:linear-gradient(135deg,var(--card),var(--card2))}
+  .fc-back{background:linear-gradient(135deg,rgba(247,201,72,.1),rgba(78,205,196,.08));border-color:var(--teal);transform:rotateY(180deg)}
+  .fc-label{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:6px}
+  .fc-word{font-family:'Bebas Neue',sans-serif;font-size:1.6rem;letter-spacing:1px;text-align:center;line-height:1.2}
+  .fc-hint{font-size:.82rem;color:var(--muted);margin-top:5px;text-align:center}
+  .fc-tap{font-size:.72rem;color:var(--muted);margin-top:12px}
+  .week-grid{display:flex;flex-direction:column;gap:10px;margin-bottom:18px}
+  .week-row{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:12px 14px;display:flex;align-items:flex-start;gap:12px}
+  .week-day{font-family:'Bebas Neue',sans-serif;font-size:1.2rem;color:var(--gold);min-width:68px;line-height:1.1}
+  .week-day small{display:block;font-family:'DM Sans',sans-serif;font-size:.66rem;color:var(--muted);font-weight:600;letter-spacing:1px;text-transform:uppercase}
+  .week-task{font-size:.86rem;line-height:1.6;color:var(--text)}
+  .week-task strong{color:var(--teal)}
+  .congrats{text-align:center;padding:24px 16px}
+  .congrats .big{font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:var(--gold);letter-spacing:2px}
+  .stats-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:16px}
+  .stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+  .stat-num{font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--gold)}
+  .stat-label{font-size:.72rem;color:var(--muted);font-weight:600;margin-top:2px}
+  .section-label{font-size:.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:9px}
+  .shuffle-badge{display:inline-flex;align-items:center;gap:5px;background:var(--card2);border:1px solid var(--border);border-radius:99px;padding:4px 10px;font-size:.72rem;font-weight:700;color:var(--muted);margin-bottom:14px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--card2);border:1px solid var(--border);border-radius:99px;padding:9px 18px;font-size:.85rem;font-weight:600;color:var(--text);z-index:9999;transition:transform .3s ease;white-space:nowrap;pointer-events:none}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .hidden{display:none!important}
+  @keyframes pop{0%{transform:scale(.85);opacity:0}70%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+  .pop{animation:pop .3s ease forwards}
 </style>
 </head>
 <body>
-
 <header>
-  <div class="header-top">
+  <div class="header-row">
     <div class="logo">🧠 MemoryGym</div>
-    <div class="streak" id="streakBadge">🔥 <span id="streakNum">0</span> day streak</div>
+    <div class="streak">🔥 <span id="streakNum">0</span> streak</div>
   </div>
 </header>
-
 <main>
-
-  <!-- Progress -->
-  <div class="progress-bar" style="margin-top:8px">
-    <div class="progress-fill" id="weekProgress" style="width:0%"></div>
-  </div>
-
-  <!-- Tab bar -->
+  <div class="progress-bar"><div class="progress-fill" id="weekProgress" style="width:0%"></div></div>
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('daily')">📅 Daily</button>
-    <button class="tab-btn" onclick="switchTab('flashcards')">🃏 Flashcards</button>
-    <button class="tab-btn" onclick="switchTab('week')">📋 Weekly Plan</button>
+    <button class="tab-btn" onclick="switchTab('flashcards')">🃏 Cards</button>
+    <button class="tab-btn" onclick="switchTab('week')">📋 Plan</button>
+    <button class="tab-btn" onclick="switchTab('stats')">📊 Stats</button>
   </div>
 
-  <!-- =================== TAB: DAILY =================== -->
+  <!-- DAILY -->
   <div id="tab-daily">
-
-    <div class="section-label">Choose today's challenge</div>
-    <div class="day-nav" id="dayNav"></div>
-
+    <div class="section-label">Difficulty</div>
+    <div class="diff-row">
+      <button class="diff-btn easy"          onclick="setDiff('easy')"  >🟢 Easy</button>
+      <button class="diff-btn medium active" onclick="setDiff('medium')">🟡 Medium</button>
+      <button class="diff-btn hard"          onclick="setDiff('hard')"  >🔴 Hard</button>
+    </div>
+    <div class="section-label">Topic</div>
+    <div class="topic-row" id="topicRow"></div>
+    <div class="shuffle-badge" id="shuffleBadge">🎲 Question 1 of 1</div>
     <div id="challengeArea"></div>
-
   </div>
 
-  <!-- =================== TAB: FLASHCARDS =================== -->
+  <!-- FLASHCARDS -->
   <div id="tab-flashcards" class="hidden">
-    <div class="section-label">Tap the card to flip — remember before you peek!</div>
+    <div class="diff-row">
+      <button class="diff-btn easy"          onclick="setFCDiff('easy')"  >🟢 Easy</button>
+      <button class="diff-btn medium active" onclick="setFCDiff('medium')">🟡 Medium</button>
+      <button class="diff-btn hard"          onclick="setFCDiff('hard')"  >🔴 Hard</button>
+    </div>
+    <div class="topic-row" id="fcTopicRow"></div>
+    <div class="section-label">Tap to flip — recall before you peek!</div>
     <div class="flashcard-wrap">
       <div class="flashcard" id="flashcard" onclick="flipCard()">
-        <div class="fc-front">
-          <div class="fc-label">Question</div>
-          <div class="fc-word" id="fcFront">—</div>
-          <div class="fc-tap">tap to reveal</div>
-        </div>
-        <div class="fc-back">
-          <div class="fc-label">Answer</div>
-          <div class="fc-word" id="fcBack" style="font-size:1.4rem; text-align:center">—</div>
-          <div class="fc-hint" id="fcHint"></div>
-        </div>
+        <div class="fc-front"><div class="fc-label">Question</div><div class="fc-word" id="fcFront">—</div><div class="fc-tap">tap to reveal</div></div>
+        <div class="fc-back"><div class="fc-label">Answer</div><div class="fc-word" id="fcBack">—</div><div class="fc-hint" id="fcHint"></div><div id="fcTopic" style="font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:6px;background:rgba(78,205,196,.12);color:#4ecdc4"></div></div>
       </div>
     </div>
     <div class="btn-row" style="justify-content:center">
-      <button class="btn btn-danger" onclick="cardResult('hard')">😬 Hard</button>
+      <button class="btn btn-danger"    onclick="cardResult('hard')">😬 Hard</button>
       <button class="btn btn-secondary" onclick="cardResult('ok')">🤔 OK</button>
-      <button class="btn btn-primary" onclick="cardResult('easy')">✅ Got it!</button>
+      <button class="btn btn-primary"   onclick="cardResult('easy')">✅ Got it!</button>
     </div>
-    <div style="text-align:center; margin-top:16px; color:var(--muted); font-size:0.82rem">
-      Card <span id="cardIndex">1</span> of <span id="cardTotal">—</span>
-    </div>
-    <div class="tip-card" style="margin-top:16px">
-      <strong>💡 Spaced Rep Tip</strong>
-      Cards you find hard come back sooner. Easy cards come back later. This is how your brain locks things in!
-    </div>
+    <div style="text-align:center;margin-top:14px;color:var(--muted);font-size:.8rem">Card <span id="cardIndex">1</span> of <span id="cardTotal">—</span></div>
+    <div class="tip-card" style="margin-top:14px"><strong>💡 Spaced Rep Tip</strong>Hard cards come back sooner. Easy cards space out longer. This is how memories lock in!</div>
   </div>
 
-  <!-- =================== TAB: WEEKLY PLAN =================== -->
+  <!-- WEEK -->
   <div id="tab-week" class="hidden">
-    <div class="section-label">Your 7-day memory training schedule</div>
+    <div class="section-label">7-day training schedule</div>
     <div class="week-grid" id="weekGrid"></div>
-    <div class="tip-card">
-      <strong>⏱ How long each day?</strong>
-      Daily brain training — build the habit, one challenge at a time.
-    </div>
+    <div class="tip-card"><strong>📌 Daily brain training</strong>Pick a difficulty, choose a topic, and complete one challenge. Come back tomorrow for a fresh set.</div>
   </div>
 
+  <!-- STATS -->
+  <div id="tab-stats" class="hidden">
+    <div class="section-label">Your progress</div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-num" id="statStreak">0</div><div class="stat-label">Streak</div></div>
+      <div class="stat-card"><div class="stat-num" id="statDone">0</div><div class="stat-label">Sessions</div></div>
+      <div class="stat-card"><div class="stat-num" id="statScore">0%</div><div class="stat-label">Avg Score</div></div>
+    </div>
+    <div class="section-label">By topic</div>
+    <div id="topicStats"></div>
+    <div class="btn-row" style="margin-top:18px"><button class="btn btn-secondary" onclick="resetStats()">↺ Reset Stats</button></div>
+  </div>
 </main>
-
 <div class="toast" id="toast"></div>
 
 <script>
-// ===== DATA =====
-
-const days = [
-  { id: 0, short: "MON", name: "Monday",   tag: "recall",  tagLabel: "Word Recall",   emoji: "📝" },
-  { id: 1, short: "TUE", name: "Tuesday",  tag: "visual",  tagLabel: "Visual Memory", emoji: "🖼" },
-  { id: 2, short: "WED", name: "Wednesday",tag: "spatial", tagLabel: "Spatial Map",   emoji: "🗺" },
-  { id: 3, short: "THU", name: "Thursday", tag: "recall",  tagLabel: "Number Sequence",emoji: "🔢" },
-  { id: 4, short: "FRI", name: "Friday",   tag: "lang",    tagLabel: "Language",      emoji: "🌏" },
-  { id: 5, short: "SAT", name: "Saturday", tag: "visual",  tagLabel: "Stats Master",  emoji: "🏀" },
-  { id: 6, short: "SUN", name: "Sunday",   tag: "spatial", tagLabel: "Memory Palace", emoji: "🏛" },
-];
-
-const challenges = [
-  {
-    title: "10-Word Rapid Recall",
-    desc: "Study these 10 words for 60 seconds. Then cover them and type as many as you can remember!",
-    tip: "Try to make a story linking the words — your brain remembers stories far better than lists.",
-    items: [
-      {e:"🌊","w":"Ocean"}, {e:"🔑","w":"Key"}, {e:"🌵","w":"Cactus"}, {e:"🎸","w":"Guitar"},
-      {e:"🦊","w":"Fox"}, {e:"🍕","w":"Pizza"}, {e:"🚀","w":"Rocket"}, {e:"🧲","w":"Magnet"},
-      {e:"🏔","w":"Mountain"}, {e:"💎","w":"Diamond"}
+// =====================================================================
+// QUESTION BANK
+// =====================================================================
+const BANK={
+  science:{label:"Science & Nature",emoji:"🔬",tagClass:"tag-science",
+    easy:[
+      {title:"Animal Kingdom",desc:"Memorise these 8 animals and their defining feature.",recallType:"facts",items:[{e:"🐘",w:"Elephant — largest land animal"},{e:"🦈",w:"Shark — has no bones (cartilage)"},{e:"🦋",w:"Butterfly — 4 life stages"},{e:"🐢",w:"Turtle — can live 150+ years"},{e:"🦁",w:"Lion — only social big cat"},{e:"🦒",w:"Giraffe — tallest animal on Earth"},{e:"🐬",w:"Dolphin — breathes air, not water"},{e:"🦅",w:"Eagle — can spot prey 2km away"}]},
+      {title:"Solar System Planets",desc:"Memorise all 8 planets in order from the Sun.",recallType:"order",items:[{e:"1️⃣",w:"Mercury"},{e:"2️⃣",w:"Venus"},{e:"3️⃣",w:"Earth"},{e:"4️⃣",w:"Mars"},{e:"5️⃣",w:"Jupiter"},{e:"6️⃣",w:"Saturn"},{e:"7️⃣",w:"Uranus"},{e:"8️⃣",w:"Neptune"}]},
+      {title:"States of Matter",desc:"Learn these 6 facts about the states of matter.",recallType:"facts",items:[{e:"🧊",w:"Solid — fixed shape and volume"},{e:"💧",w:"Liquid — fixed volume, no fixed shape"},{e:"💨",w:"Gas — no fixed shape or volume"},{e:"🌡️",w:"Melting — solid turns to liquid"},{e:"♨️",w:"Evaporation — liquid turns to gas"},{e:"❄️",w:"Freezing — liquid turns to solid"}]},
+      {title:"Body Systems",desc:"Match each system to its main job.",recallType:"facts",items:[{e:"❤️",w:"Circulatory — pumps blood around body"},{e:"🫁",w:"Respiratory — moves oxygen in/out"},{e:"🧠",w:"Nervous — controls body & thoughts"},{e:"🦴",w:"Skeletal — gives structure & support"},{e:"💪",w:"Muscular — creates movement"},{e:"🛡️",w:"Immune — fights disease & infection"}]},
     ],
-    recallType: "words"
+    medium:[
+      {title:"Element Symbols",desc:"Learn these 8 chemical elements and their symbols.",recallType:"facts",items:[{e:"⚗️",w:"H = Hydrogen"},{e:"⚗️",w:"O = Oxygen"},{e:"⚗️",w:"C = Carbon"},{e:"⚗️",w:"Fe = Iron"},{e:"⚗️",w:"Au = Gold"},{e:"⚗️",w:"Na = Sodium"},{e:"⚗️",w:"Ca = Calcium"},{e:"⚗️",w:"N = Nitrogen"}]},
+      {title:"Space Facts",desc:"Memorise these 7 space facts — then recall them all!",recallType:"facts",items:[{e:"🌙",w:"Moon is 384,400 km from Earth"},{e:"☀️",w:"Sun is ~150 million km from Earth"},{e:"⏱️",w:"Sunlight takes 8 minutes to reach Earth"},{e:"🪐",w:"Saturn has 146 known moons"},{e:"🌑",w:"Black holes have near-infinite density"},{e:"🔭",w:"Milky Way has ~200 billion stars"},{e:"🚀",w:"ISS orbits Earth every 90 minutes"}]},
+      {title:"Animal Top Speeds",desc:"Memorise these 6 animals and their top speeds.",recallType:"facts",items:[{e:"🐆",w:"Cheetah — 112 km/h"},{e:"🦅",w:"Peregrine Falcon — 389 km/h (dive)"},{e:"🐬",w:"Sailfish — 110 km/h in water"},{e:"🐴",w:"Horse — 88 km/h"},{e:"🐊",w:"Crocodile — 17 km/h on land"},{e:"🐌",w:"Snail — 0.05 km/h"}]},
+      {title:"Human Body Numbers",desc:"Study these 7 body statistics.",recallType:"facts",items:[{e:"🦴",w:"206 bones in the adult body"},{e:"🦷",w:"32 teeth in adult mouth"},{e:"❤️",w:"Heart beats ~100,000 times per day"},{e:"🩸",w:"Body has ~5 litres of blood"},{e:"🧠",w:"Brain is ~2% of body weight"},{e:"👁️",w:"Eye can distinguish ~10 million colours"},{e:"💨",w:"We breathe ~20,000 times per day"}]},
+    ],
+    hard:[
+      {title:"Physics Laws",desc:"Match each scientist to their famous law or discovery.",recallType:"facts",items:[{e:"🍎",w:"Newton — 3 Laws of Motion & Gravity"},{e:"⚡",w:"Faraday — Electromagnetic induction"},{e:"💡",w:"Einstein — E=mc² (mass-energy equivalence)"},{e:"🌊",w:"Archimedes — Buoyancy principle"},{e:"🌡️",w:"Boyle — Gas pressure & volume (Boyle's Law)"},{e:"🧲",w:"Coulomb — Electric force law"},{e:"☢️",w:"Curie — Radioactivity research"}]},
+      {title:"DNA & Genetics",desc:"Learn these 8 genetics terms and their meanings.",recallType:"facts",items:[{e:"🧬",w:"DNA — stores genetic instructions"},{e:"🧬",w:"Gene — section of DNA coding a trait"},{e:"🧬",w:"Chromosome — DNA coiled around proteins"},{e:"🧬",w:"Allele — variant form of a gene"},{e:"🧬",w:"Dominant — trait that masks recessive"},{e:"🧬",w:"Recessive — only shows if both copies present"},{e:"🧬",w:"Mutation — change in DNA sequence"},{e:"🧬",w:"Phenotype — observable physical traits"}]},
+      {title:"Periodic Table Groups",desc:"Memorise these 8 element groups and their key property.",recallType:"facts",items:[{e:"⚗️",w:"Group 1: Alkali metals — very reactive with water"},{e:"⚗️",w:"Group 2: Alkaline earth metals — less reactive"},{e:"⚗️",w:"Group 17: Halogens — non-metals, highly reactive"},{e:"⚗️",w:"Group 18: Noble gases — inert and stable"},{e:"⚗️",w:"Transition metals — good conductors"},{e:"⚗️",w:"Metalloids — properties of both metals & non-metals"},{e:"⚗️",w:"Lanthanides: rare earth elements"},{e:"⚗️",w:"Actinides: mostly radioactive elements"}]},
+    ]
   },
-  {
-    title: "Emoji Sequence Memory",
-    desc: "Here's a sequence of 8 emojis. Study the ORDER for 45 seconds, then type them in the right order!",
-    tip: "Use a story: 'The ROCKET landed near the TREE, a CAT watched…' Narrative order is easy to recall.",
-    items: [
-      {e:"🚀","w":"Rocket"}, {e:"🌳","w":"Tree"}, {e:"🐱","w":"Cat"}, {e:"⚡","w":"Lightning"},
-      {e:"🎯","w":"Target"}, {e:"🧊","w":"Ice"}, {e:"🦋","w":"Butterfly"}, {e:"🎺","w":"Trumpet"}
+  geography:{label:"World Geography",emoji:"🌍",tagClass:"tag-geo",
+    easy:[
+      {title:"World Capitals — Set 1",desc:"Match each country to its capital city.",recallType:"facts",items:[{e:"🇦🇺",w:"Australia → Canberra"},{e:"🇯🇵",w:"Japan → Tokyo"},{e:"🇧🇷",w:"Brazil → Brasília"},{e:"🇿🇦",w:"South Africa → Pretoria"},{e:"🇨🇦",w:"Canada → Ottawa"},{e:"🇪🇬",w:"Egypt → Cairo"},{e:"🇦🇷",w:"Argentina → Buenos Aires"},{e:"🇮🇳",w:"India → New Delhi"}]},
+      {title:"World Capitals — Set 2",desc:"More capitals — can you get them all?",recallType:"facts",items:[{e:"🇩🇪",w:"Germany → Berlin"},{e:"🇫🇷",w:"France → Paris"},{e:"🇮🇹",w:"Italy → Rome"},{e:"🇲🇽",w:"Mexico → Mexico City"},{e:"🇰🇷",w:"South Korea → Seoul"},{e:"🇷🇺",w:"Russia → Moscow"},{e:"🇳🇴",w:"Norway → Oslo"},{e:"🇳🇿",w:"New Zealand → Wellington"}]},
+      {title:"Continents & Facts",desc:"Memorise these key continent facts.",recallType:"facts",items:[{e:"🌍",w:"Africa — most countries (54)"},{e:"🌏",w:"Asia — largest & most populous continent"},{e:"🌎",w:"Americas — longest mountain range (Andes)"},{e:"🇦🇶",w:"Antarctica — coldest continent, no permanent residents"},{e:"🌍",w:"Europe — smallest continent (exc. Australia)"},{e:"🌏",w:"Australia — only country that is also a continent"},{e:"🌊",w:"Pacific — world's largest ocean"}]},
+      {title:"Longest Rivers",desc:"Learn these 6 rivers and where they flow.",recallType:"facts",items:[{e:"🌊",w:"Nile — Africa, 6,650 km"},{e:"🌊",w:"Amazon — South America, 6,400 km"},{e:"🌊",w:"Yangtze — China, 6,300 km"},{e:"🌊",w:"Mississippi — USA, 3,730 km"},{e:"🌊",w:"Murray-Darling — Australia, 3,750 km"},{e:"🌊",w:"Congo — Africa, 4,700 km"}]},
     ],
-    recallType: "order"
+    medium:[
+      {title:"World Capitals — Tricky",desc:"These capitals trip people up — memorise them!",recallType:"facts",items:[{e:"🇰🇿",w:"Kazakhstan → Astana"},{e:"🇳🇬",w:"Nigeria → Abuja"},{e:"🇵🇰",w:"Pakistan → Islamabad"},{e:"🇧🇩",w:"Bangladesh → Dhaka"},{e:"🇸🇦",w:"Saudi Arabia → Riyadh"},{e:"🇵🇭",w:"Philippines → Manila"},{e:"🇨🇱",w:"Chile → Santiago"},{e:"🇲🇾",w:"Malaysia → Kuala Lumpur"}]},
+      {title:"Mountain Heights",desc:"Memorise these 7 peaks and their heights.",recallType:"facts",items:[{e:"🏔️",w:"Everest — 8,849 m (Asia)"},{e:"🏔️",w:"K2 — 8,611 m (Asia)"},{e:"🏔️",w:"Kilimanjaro — 5,895 m (Africa)"},{e:"🏔️",w:"Mont Blanc — 4,808 m (Europe)"},{e:"🏔️",w:"Aconcagua — 6,961 m (South America)"},{e:"🏔️",w:"Denali — 6,190 m (North America)"},{e:"🏔️",w:"Kosciuszko — 2,228 m (Australia)"}]},
+      {title:"Country Populations",desc:"Study these 6 major country populations.",recallType:"facts",items:[{e:"🇨🇳",w:"China — 1.41 billion"},{e:"🇮🇳",w:"India — 1.43 billion"},{e:"🇺🇸",w:"USA — 335 million"},{e:"🇮🇩",w:"Indonesia — 278 million"},{e:"🇧🇷",w:"Brazil — 215 million"},{e:"🇦🇺",w:"Australia — 27 million"}]},
+      {title:"Largest Countries by Area",desc:"Memorise these 7 largest countries.",recallType:"facts",items:[{e:"🇷🇺",w:"Russia — 17.1 million km² (largest)"},{e:"🇨🇦",w:"Canada — 10.0 million km²"},{e:"🇺🇸",w:"USA — 9.8 million km²"},{e:"🇨🇳",w:"China — 9.6 million km²"},{e:"🇧🇷",w:"Brazil — 8.5 million km²"},{e:"🇦🇺",w:"Australia — 7.7 million km²"},{e:"🇮🇳",w:"India — 3.3 million km²"}]},
+    ],
+    hard:[
+      {title:"Geographic World Records",desc:"Match each superlative to its correct answer.",recallType:"facts",items:[{e:"🌡️",w:"Hottest place: Death Valley, USA (56.7°C)"},{e:"❄️",w:"Coldest recorded: Antarctica (−89.2°C)"},{e:"🌧️",w:"Wettest place: Mawsynram, India"},{e:"🏜️",w:"Largest desert: Antarctica (cold desert)"},{e:"🏝️",w:"Largest island: Greenland"},{e:"🌊",w:"Deepest point: Mariana Trench (~11 km)"},{e:"🏙️",w:"Most populous city: Tokyo (~37 million)"}]},
+      {title:"Country Flag Colours",desc:"Recall the exact colours and layout of these flags.",recallType:"facts",items:[{e:"🇩🇪",w:"Germany — Black, Red, Gold (horizontal bands)"},{e:"🇫🇷",w:"France — Blue, White, Red (vertical bands)"},{e:"🇯🇵",w:"Japan — White with red circle (Hinomaru)"},{e:"🇧🇷",w:"Brazil — Green, Yellow diamond, Blue circle, stars"},{e:"🇨🇦",w:"Canada — Red, White, Red + maple leaf"},{e:"🇦🇺",w:"Australia — Blue, Union Jack, Southern Cross, star"}]},
+    ]
   },
-  {
-    title: "City Locations",
-    desc: "These 6 Australian cities and their rough compass positions. Memorise in 60 seconds, then recall which city is where!",
-    tip: "Create a mental map — picture Australia's shape and 'place' each city in your imagination.",
-    items: [
-      {e:"🏙","w":"Perth — Far West"}, {e:"🏙","w":"Sydney — East Coast"},
-      {e:"🏙","w":"Melbourne — South-East"}, {e:"🏙","w":"Darwin — Far North"},
-      {e:"🏙","w":"Brisbane — North-East"}, {e:"🏙","w":"Adelaide — South"}
+  history:{label:"History & Culture",emoji:"🏛️",tagClass:"tag-history",
+    easy:[
+      {title:"Ancient Wonders",desc:"Memorise the 7 Wonders of the Ancient World.",recallType:"facts",items:[{e:"🏛️",w:"Great Pyramid of Giza — Egypt (only surviving wonder)"},{e:"🏛️",w:"Colossus of Rhodes — giant bronze statue"},{e:"🏛️",w:"Lighthouse of Alexandria — Egypt"},{e:"🏛️",w:"Mausoleum at Halicarnassus — Turkey"},{e:"🏛️",w:"Temple of Artemis at Ephesus — Turkey"},{e:"🏛️",w:"Statue of Zeus at Olympia — Greece"},{e:"🏛️",w:"Hanging Gardens of Babylon — Iraq"}]},
+      {title:"Famous Firsts",desc:"Memorise who achieved each historic first.",recallType:"facts",items:[{e:"🚀",w:"First in space: Yuri Gagarin (1961)"},{e:"🌕",w:"First on Moon: Neil Armstrong (1969)"},{e:"✈️",w:"First powered flight: Wright Brothers (1903)"},{e:"📞",w:"Telephone: Alexander Graham Bell (1876)"},{e:"💡",w:"Light bulb: Thomas Edison (1879)"},{e:"🖨️",w:"Printing press: Gutenberg (~1440)"}]},
+      {title:"World War II Timeline",desc:"Memorise these 6 key WWII events and years.",recallType:"facts",items:[{e:"📅",w:"1939 — Germany invades Poland, war begins"},{e:"📅",w:"1941 — USA enters after Pearl Harbor"},{e:"📅",w:"1942 — Battle of Stalingrad begins"},{e:"📅",w:"1944 — D-Day Normandy landings"},{e:"📅",w:"1945 May — Germany surrenders (V-E Day)"},{e:"📅",w:"1945 Sept — Japan surrenders, war ends"}]},
+      {title:"Famous Leaders",desc:"Match each leader to their country and era.",recallType:"facts",items:[{e:"👤",w:"Napoleon Bonaparte — France, early 1800s"},{e:"👤",w:"Genghis Khan — Mongol Empire, 1200s"},{e:"👤",w:"Julius Caesar — Roman Republic, 1st century BC"},{e:"👤",w:"Cleopatra — Ancient Egypt, 1st century BC"},{e:"👤",w:"Abraham Lincoln — USA, abolished slavery"},{e:"👤",w:"Mahatma Gandhi — India, led independence movement"},{e:"👤",w:"Nelson Mandela — South Africa, ended apartheid"}]},
     ],
-    recallType: "facts"
+    medium:[
+      {title:"Ancient Civilisations",desc:"Match each civilisation to its key achievement.",recallType:"facts",items:[{e:"🏛️",w:"Romans — Colosseum, roads, aqueducts, law"},{e:"🏛️",w:"Greeks — democracy, Olympics, philosophy"},{e:"🏛️",w:"Egyptians — pyramids, hieroglyphics, papyrus"},{e:"🏛️",w:"Aztecs — built Tenochtitlan (now Mexico City)"},{e:"🏛️",w:"Incas — built Machu Picchu in the Andes"},{e:"🏛️",w:"Chinese — invented paper, gunpowder, compass"},{e:"🏛️",w:"Mesopotamia — first writing system (cuneiform)"}]},
+      {title:"Revolutions & Dates",desc:"Match each revolution to its date and country.",recallType:"facts",items:[{e:"🏴",w:"French Revolution — 1789, France"},{e:"🏴",w:"American Revolution — 1776, USA"},{e:"🏴",w:"Russian Revolution — 1917, Russia"},{e:"🏴",w:"Chinese Revolution — 1949, China"},{e:"🏴",w:"Cuban Revolution — 1959, Cuba"},{e:"🏴",w:"Glorious Revolution — 1688, England"}]},
+    ],
+    hard:[
+      {title:"Historical Treaties",desc:"Match each treaty to what it ended or established.",recallType:"facts",items:[{e:"📜",w:"Treaty of Versailles (1919) — ended WWI"},{e:"📜",w:"Treaty of Westphalia (1648) — ended 30 Years War"},{e:"📜",w:"Treaty of Tordesillas (1494) — divided New World"},{e:"📜",w:"Magna Carta (1215) — limited English king's power"},{e:"📜",w:"Treaty of Paris (1783) — ended American Revolution"},{e:"📜",w:"UN Charter (1945) — founded the United Nations"}]},
+      {title:"Cultural Inventions",desc:"Match each invention to its culture of origin.",recallType:"facts",items:[{e:"🧭",w:"Compass — China, ~200 BC"},{e:"📄",w:"Paper — China, ~105 AD"},{e:"🔢",w:"Zero as a number — India, ~5th century AD"},{e:"⚽",w:"Football/Soccer rules — England, 1863"},{e:"🎶",w:"Western musical notation — Medieval Europe"},{e:"🏺",w:"Wheel — Mesopotamia, ~3500 BC"},{e:"🍕",w:"Pizza (modern) — Naples, Italy, 1800s"}]},
+    ]
   },
-  {
-    title: "Number Sequence",
-    desc: "Memorise this 10-digit sequence in 45 seconds, then type it back perfectly.",
-    tip: "Break it into chunks: '4729 - 1583 - 06'. Your working memory handles chunks much better than individual digits.",
-    items: [
-      {e:"4","w":"4"},{e:"7","w":"7"},{e:"2","w":"2"},{e:"9","w":"9"},{e:"1","w":"1"},
-      {e:"5","w":"5"},{e:"8","w":"8"},{e:"3","w":"3"},{e:"0","w":"0"},{e:"6","w":"6"}
+  tech:{label:"Tech & Gaming",emoji:"💻",tagClass:"tag-tech",
+    easy:[
+      {title:"Tech Brands",desc:"Match each brand to what they are best known for.",recallType:"facts",items:[{e:"🍎",w:"Apple — iPhone, Mac, iPad, iOS"},{e:"🔍",w:"Google — Search, Android, YouTube, Maps"},{e:"🎮",w:"Nintendo — Mario, Zelda, Pokémon, Switch"},{e:"💬",w:"Meta — Facebook, Instagram, WhatsApp"},{e:"🛒",w:"Amazon — e-commerce, AWS cloud, Alexa"},{e:"🎵",w:"Spotify — music streaming"},{e:"🎬",w:"Netflix — video streaming"},{e:"🚗",w:"Tesla — electric vehicles, Autopilot AI"}]},
+      {title:"Computing Basics",desc:"Memorise these 7 computer terms and definitions.",recallType:"facts",items:[{e:"💾",w:"RAM — temporary working memory"},{e:"💿",w:"CPU — processes all instructions"},{e:"🖥️",w:"GPU — handles graphics processing"},{e:"📱",w:"OS — operating system, runs the device"},{e:"🌐",w:"Browser — app to access the internet"},{e:"☁️",w:"Cloud — storing data on remote servers"},{e:"🔒",w:"Encryption — scrambling data to protect it"}]},
+      {title:"Gaming Legends",desc:"Match each game to its genre or key fact.",recallType:"facts",items:[{e:"🎮",w:"Minecraft — sandbox survival, 238M+ copies sold"},{e:"🎮",w:"Fortnite — battle royale, 100 players"},{e:"🎮",w:"Pokémon — catch & battle creatures, 1996"},{e:"🎮",w:"Roblox — user-created game platform"},{e:"🎮",w:"The Legend of Zelda — adventure & puzzles, 1986"},{e:"🎮",w:"Mario Kart — racing with power-ups"},{e:"🎮",w:"FIFA / EA FC — football simulation"}]},
     ],
-    recallType: "sequence"
+    medium:[
+      {title:"Programming Languages",desc:"Match each language to what it is mainly used for.",recallType:"facts",items:[{e:"🐍",w:"Python — AI, data science, automation"},{e:"☕",w:"Java — Android apps, enterprise software"},{e:"🌐",w:"JavaScript — web interactivity & front-end"},{e:"🎨",w:"CSS — styling web pages"},{e:"🏗️",w:"HTML — structure of web pages"},{e:"🦀",w:"Rust — systems programming, fast & safe"},{e:"📱",w:"Swift — Apple iOS and macOS apps"}]},
+      {title:"AI & Machine Learning Terms",desc:"Match each AI term to its definition.",recallType:"facts",items:[{e:"🤖",w:"Machine Learning — AI learns patterns from data"},{e:"🧠",w:"Neural Network — modelled on human brain structure"},{e:"💬",w:"LLM — language model trained on text data"},{e:"🎨",w:"Generative AI — creates new content (text, images)"},{e:"📊",w:"Training Data — examples used to teach an AI"},{e:"🔄",w:"Algorithm — set of rules for solving a problem"},{e:"🎯",w:"Prompt — the instruction you give an AI"}]},
+      {title:"Internet & Networking",desc:"Memorise these 7 networking terms.",recallType:"facts",items:[{e:"🌐",w:"IP Address — unique identifier for each device"},{e:"🔗",w:"URL — web address of a resource"},{e:"🔒",w:"HTTPS — secure encrypted web connection"},{e:"📡",w:"Wi-Fi — wireless internet protocol (802.11)"},{e:"🔄",w:"DNS — translates domain names to IP addresses"},{e:"🛡️",w:"Firewall — blocks unauthorised network access"},{e:"📶",w:"Bandwidth — maximum data transfer rate"}]},
+    ],
+    hard:[
+      {title:"Tech History Milestones",desc:"Match each year to its tech milestone.",recallType:"facts",items:[{e:"📅",w:"1969 — ARPANET (precursor to internet) created"},{e:"📅",w:"1991 — World Wide Web launched (Tim Berners-Lee)"},{e:"📅",w:"1998 — Google founded by Page & Brin"},{e:"📅",w:"2004 — Facebook launched at Harvard"},{e:"📅",w:"2007 — First iPhone released by Apple"},{e:"📅",w:"2008 — Bitcoin whitepaper published (Satoshi)"},{e:"📅",w:"2022 — ChatGPT launched by OpenAI"}]},
+      {title:"CS Concepts",desc:"Advanced CS terms — recall each definition.",recallType:"facts",items:[{e:"⚡",w:"O(n) — linear time complexity"},{e:"⚡",w:"O(log n) — logarithmic time (efficient searching)"},{e:"🔄",w:"Recursion — function that calls itself"},{e:"📦",w:"API — interface for apps to communicate"},{e:"🗃️",w:"SQL — language for querying relational databases"},{e:"🧱",w:"OOP — code organised into objects & classes"},{e:"🔀",w:"Git — distributed version control system"}]},
+    ]
   },
-  {
-    title: "Japanese Words",
-    desc: "Learn these 6 Japanese words & their meanings. Study for 90 seconds, then recall!",
-    tip: "Make a vivid image: 'Neko sounds like 'neck-o' — picture a cat with a giant neck!'",
-    items: [
-      {e:"🐱","w":"Neko = Cat"}, {e:"🌸","w":"Hana = Flower"},
-      {e:"🔵","w":"Ao = Blue"}, {e:"🍎","w":"Ringo = Apple"},
-      {e:"🌙","w":"Tsuki = Moon"}, {e:"🐟","w":"Sakana = Fish"}
+  sports:{label:"Sports",emoji:"🏆",tagClass:"tag-sports",
+    easy:[
+      {title:"NBA Legends",desc:"Memorise these 7 NBA all-time greats and a key fact.",recallType:"facts",items:[{e:"🏀",w:"Michael Jordan — 30.1 PPG career average"},{e:"🏀",w:"LeBron James — all-time NBA scoring leader"},{e:"🏀",w:"Kobe Bryant — 33,643 career points, 5× champion"},{e:"🏀",w:"Kareem Abdul-Jabbar — former scoring record holder"},{e:"🏀",w:"Stephen Curry — greatest 3-point shooter ever"},{e:"🏀",w:"Magic Johnson — 11.2 assists per game"},{e:"🏀",w:"Shaquille O'Neal — 4× NBA Champion"}]},
+      {title:"FIFA World Cup Hosts",desc:"Memorise these World Cup host countries and years.",recallType:"facts",items:[{e:"⚽",w:"1994 — USA"},{e:"⚽",w:"1998 — France"},{e:"⚽",w:"2002 — South Korea & Japan"},{e:"⚽",w:"2006 — Germany"},{e:"⚽",w:"2010 — South Africa"},{e:"⚽",w:"2014 — Brazil"},{e:"⚽",w:"2018 — Russia"},{e:"⚽",w:"2022 — Qatar"}]},
+      {title:"Sport Rules & Facts",desc:"Match each sport to its key rule or fact.",recallType:"facts",items:[{e:"⚽",w:"Football — 11 players per side, 90 minutes"},{e:"🏀",w:"Basketball — 5 per side, 4 quarters"},{e:"🎾",w:"Tennis — best of 3 sets (5 in Grand Slams)"},{e:"🏏",w:"Cricket — 11 per side, bat & bowl innings"},{e:"🏉",w:"Rugby — 15 per side, try = 5 points"},{e:"🏊",w:"Swimming — freestyle, backstroke, butterfly, breaststroke"},{e:"⛳",w:"Golf — lowest strokes wins"}]},
     ],
-    recallType: "facts"
+    medium:[
+      {title:"Tennis Grand Slams",desc:"Memorise all 4 Grand Slams — surface, location, month.",recallType:"facts",items:[{e:"🎾",w:"Australian Open — Hard court, Melbourne, January"},{e:"🎾",w:"French Open — Clay court, Paris, May–June"},{e:"🎾",w:"Wimbledon — Grass court, London, June–July"},{e:"🎾",w:"US Open — Hard court, New York, Aug–Sept"}]},
+      {title:"Football Club Records",desc:"Memorise these 6 clubs and their notable record.",recallType:"facts",items:[{e:"⚽",w:"Real Madrid — most Champions League titles (15)"},{e:"⚽",w:"Manchester United — most English league titles (20)"},{e:"⚽",w:"Bayern Munich — most Bundesliga titles (32)"},{e:"⚽",w:"Barcelona — Messi scored 778 goals for them"},{e:"⚽",w:"AC Milan — 7 European Cup/Champions League titles"},{e:"⚽",w:"Juventus — most Italian Serie A titles (36)"}]},
+      {title:"Sport World Records",desc:"Memorise these 7 iconic sport records.",recallType:"facts",items:[{e:"🏃",w:"100m world record — 9.58s (Usain Bolt, 2009)"},{e:"🏊",w:"100m freestyle — 46.86s (César Cielo)"},{e:"⚽",w:"Most World Cup goals — Miroslav Klose (16)"},{e:"🎾",w:"Most Grand Slams (men) — Novak Djokovic (24)"},{e:"🏀",w:"Most NBA points — LeBron James (40,000+)"},{e:"🏏",w:"Most Test cricket runs — Sachin Tendulkar (15,921)"},{e:"🥇",w:"Most Olympic gold medals — Michael Phelps (23)"}]},
+    ],
+    hard:[
+      {title:"Olympics Host Cities",desc:"Match each Olympic year to its host city.",recallType:"facts",items:[{e:"🏅",w:"1936 — Berlin, Germany"},{e:"🏅",w:"1968 — Mexico City (summer) / Grenoble (winter)"},{e:"🏅",w:"1980 — Moscow (boycotted by USA)"},{e:"🏅",w:"1984 — Los Angeles"},{e:"🏅",w:"2000 — Sydney, Australia"},{e:"🏅",w:"2008 — Beijing, China"},{e:"🏅",w:"2024 — Paris, France"}]},
+      {title:"Formula 1 Champions",desc:"Memorise these multiple F1 world champions.",recallType:"facts",items:[{e:"🏎️",w:"Michael Schumacher — 7 world titles (1994–2004)"},{e:"🏎️",w:"Lewis Hamilton — 7 world titles (2008–2020)"},{e:"🏎️",w:"Ayrton Senna — 3 titles, legendary Brazilian"},{e:"🏎️",w:"Alain Prost — 4 world titles, French"},{e:"🏎️",w:"Sebastian Vettel — 4 consecutive titles 2010–13"},{e:"🏎️",w:"Max Verstappen — 3 consecutive titles 2021–23"}]},
+    ]
   },
-  {
-    title: "NBA Player Stats",
-    desc: "Memorise these 5 all-time NBA legends and one key stat each. You have 90 seconds!",
-    tip: "Connect each stat to the player's style — Jordan was precise like 30.1 points every night.",
-    items: [
-      {e:"🏀","w":"Michael Jordan — 30.1 PPG career avg"},
-      {e:"🏀","w":"LeBron James — 27.2 PPG, 7x+ Finals"},
-      {e:"🏀","w":"Kobe Bryant — 33,643 career points"},
-      {e:"🏀","w":"Stephen Curry — 3× NBA Champion"},
-      {e:"🏀","w":"Shaquille O'Neal — 4× NBA Champion"}
+  language:{label:"Languages",emoji:"🌏",tagClass:"tag-language",
+    easy:[
+      {title:"Japanese Basics",desc:"Learn these 8 essential Japanese words.",recallType:"facts",items:[{e:"🐱",w:"Neko = Cat"},{e:"🌸",w:"Hana = Flower"},{e:"🔵",w:"Ao = Blue"},{e:"🍎",w:"Ringo = Apple"},{e:"🌙",w:"Tsuki = Moon"},{e:"🐟",w:"Sakana = Fish"},{e:"🏠",w:"Ie = House"},{e:"🌊",w:"Umi = Sea / Ocean"}]},
+      {title:"Spanish Basics",desc:"Learn these 8 essential Spanish words.",recallType:"facts",items:[{e:"👋",w:"Hola = Hello"},{e:"🙏",w:"Gracias = Thank you"},{e:"🍎",w:"Manzana = Apple"},{e:"🐕",w:"Perro = Dog"},{e:"🏠",w:"Casa = House"},{e:"📚",w:"Libro = Book"},{e:"🌊",w:"Mar = Sea"},{e:"☀️",w:"Sol = Sun"}]},
+      {title:"French Basics",desc:"Learn these 8 essential French words.",recallType:"facts",items:[{e:"👋",w:"Bonjour = Hello / Good day"},{e:"🙏",w:"Merci = Thank you"},{e:"🐱",w:"Chat = Cat"},{e:"🐕",w:"Chien = Dog"},{e:"🌊",w:"Mer = Sea"},{e:"🌸",w:"Fleur = Flower"},{e:"🍎",w:"Pomme = Apple"},{e:"📚",w:"Livre = Book"}]},
+      {title:"Mandarin Basics",desc:"Learn these 7 essential Mandarin Chinese words.",recallType:"facts",items:[{e:"👋",w:"Nǐ hǎo (你好) = Hello"},{e:"🙏",w:"Xièxiè (谢谢) = Thank you"},{e:"🐱",w:"Māo (猫) = Cat"},{e:"🐕",w:"Gǒu (狗) = Dog"},{e:"🍎",w:"Píngguǒ (苹果) = Apple"},{e:"🌊",w:"Hǎi (海) = Sea"},{e:"🏠",w:"Jiā (家) = Home / Family"}]},
     ],
-    recallType: "facts"
-  },
-  {
-    title: "Memory Palace: Your Bedroom",
-    desc: "Place each item below in a specific spot in your bedroom. Close your eyes and 'walk through' it, then recall the list!",
-    tip: "The weirder the image the better — picture a GIANT ROCKET sitting on your pillow. Ridiculous = memorable!",
-    items: [
-      {e:"🚀","w":"Rocket on the pillow"}, {e:"🐊","w":"Crocodile under the desk"},
-      {e:"🌋","w":"Volcano on the wardrobe"}, {e:"👑","w":"Crown on the door handle"},
-      {e:"🦄","w":"Unicorn by the window"}, {e:"🧊","w":"Iceberg in the corner"}
+    medium:[
+      {title:"Japanese Numbers 1–10",desc:"Memorise numbers 1–10 in Japanese.",recallType:"facts",items:[{e:"1️⃣",w:"Ichi = 1"},{e:"2️⃣",w:"Ni = 2"},{e:"3️⃣",w:"San = 3"},{e:"4️⃣",w:"Shi / Yon = 4"},{e:"5️⃣",w:"Go = 5"},{e:"6️⃣",w:"Roku = 6"},{e:"7️⃣",w:"Nana / Shichi = 7"},{e:"8️⃣",w:"Hachi = 8"},{e:"9️⃣",w:"Ku / Kyuu = 9"},{e:"🔟",w:"Juu = 10"}]},
+      {title:"Spanish Colours",desc:"Memorise these 8 colours in Spanish.",recallType:"facts",items:[{e:"❤️",w:"Rojo = Red"},{e:"💙",w:"Azul = Blue"},{e:"💚",w:"Verde = Green"},{e:"💛",w:"Amarillo = Yellow"},{e:"🖤",w:"Negro = Black"},{e:"🤍",w:"Blanco = White"},{e:"🟠",w:"Naranja = Orange"},{e:"💜",w:"Morado / Violeta = Purple"}]},
+      {title:"Spanish Numbers 1–10",desc:"Memorise numbers 1–10 in Spanish.",recallType:"facts",items:[{e:"1️⃣",w:"Uno = 1"},{e:"2️⃣",w:"Dos = 2"},{e:"3️⃣",w:"Tres = 3"},{e:"4️⃣",w:"Cuatro = 4"},{e:"5️⃣",w:"Cinco = 5"},{e:"6️⃣",w:"Seis = 6"},{e:"7️⃣",w:"Siete = 7"},{e:"8️⃣",w:"Ocho = 8"},{e:"9️⃣",w:"Nueve = 9"},{e:"🔟",w:"Diez = 10"}]},
+      {title:"Greetings in 6 Languages",desc:"Learn how to say Hello in 6 different languages.",recallType:"facts",items:[{e:"🇯🇵",w:"Japanese: Konnichiwa (こんにちは)"},{e:"🇪🇸",w:"Spanish: Hola"},{e:"🇫🇷",w:"French: Bonjour"},{e:"🇨🇳",w:"Mandarin: Nǐ hǎo (你好)"},{e:"🇩🇪",w:"German: Hallo / Guten Tag"},{e:"🇮🇹",w:"Italian: Ciao / Buongiorno"},{e:"🇰🇷",w:"Korean: Annyeonghaseyo (안녕하세요)"}]},
     ],
-    recallType: "palace"
+    hard:[
+      {title:"Language Families",desc:"Match each language to its language family.",recallType:"facts",items:[{e:"🌍",w:"Spanish, French, Italian, Portuguese → Romance"},{e:"🌍",w:"German, English, Dutch, Swedish → Germanic"},{e:"🌍",w:"Russian, Polish, Czech, Bulgarian → Slavic"},{e:"🌍",w:"Arabic, Hebrew, Amharic → Semitic"},{e:"🌍",w:"Hindi, Bengali, Urdu, Punjabi → Indo-Aryan"},{e:"🌍",w:"Mandarin, Cantonese, Tibetan → Sino-Tibetan"},{e:"🌍",w:"Japanese & Korean — considered language isolates"}]},
+      {title:"False Friends",desc:"'False friends' look similar but mean different things!",recallType:"facts",items:[{e:"⚠️",w:"Spanish 'embarazada' = Pregnant (NOT embarrassed)"},{e:"⚠️",w:"French 'librairie' = Bookshop (NOT library)"},{e:"⚠️",w:"German 'Gift' = Poison (NOT a present)"},{e:"⚠️",w:"Italian 'morbido' = Soft (NOT morbid)"},{e:"⚠️",w:"Portuguese 'polvo' = Octopus (NOT powder)"},{e:"⚠️",w:"Japanese 'mansion' = Apartment (NOT a mansion)"}]},
+    ]
   }
+};
+
+// =====================================================================
+// FLASHCARD BANK — 56 cards across 6 topics × 3 difficulties
+// =====================================================================
+const ALL_CARDS=[
+  {q:"Chemical symbol for Gold?",a:"Au",hint:"From Latin: Aurum",topic:"🔬 Science",diff:"easy"},
+  {q:"Chemical symbol for Iron?",a:"Fe",hint:"From Latin: Ferrum",topic:"🔬 Science",diff:"easy"},
+  {q:"How many bones in the adult human body?",a:"206",hint:"Babies have ~270 — some fuse together",topic:"🔬 Science",diff:"easy"},
+  {q:"Fastest land animal?",a:"🐆 Cheetah — 112 km/h",hint:"Found in Africa and Iran",topic:"🔬 Science",diff:"easy"},
+  {q:"What are the 3 states of matter?",a:"Solid, Liquid, Gas",hint:"Plus plasma as a 4th state",topic:"🔬 Science",diff:"easy"},
+  {q:"Which planet has the most moons?",a:"Saturn (146 moons)",hint:"Also famous for its rings",topic:"🔬 Science",diff:"medium"},
+  {q:"What does DNA stand for?",a:"Deoxyribonucleic Acid",hint:"Stores all genetic instructions",topic:"🔬 Science",diff:"medium"},
+  {q:"Speed of light (approximate)?",a:"300,000 km per second",hint:"Nothing travels faster",topic:"🔬 Science",diff:"medium"},
+  {q:"What is Newton's 3rd Law?",a:"Every action has an equal and opposite reaction",hint:"Explains rocket propulsion!",topic:"🔬 Science",diff:"hard"},
+  {q:"What does E=mc² mean?",a:"Energy = mass × speed of light squared",hint:"Einstein's mass-energy equivalence",topic:"🔬 Science",diff:"hard"},
+  // Geography
+  {q:"Capital of Australia?",a:"Canberra",hint:"Not Sydney or Melbourne!",topic:"🌍 Geography",diff:"easy"},
+  {q:"Longest river in the world?",a:"Nile (6,650 km)",hint:"Flows through Egypt into Mediterranean",topic:"🌍 Geography",diff:"easy"},
+  {q:"Which continent has the most countries?",a:"Africa (54 countries)",hint:"Largest continent by country count",topic:"🌍 Geography",diff:"easy"},
+  {q:"Capital of Brazil?",a:"Brasília",hint:"Not Rio or São Paulo!",topic:"🌍 Geography",diff:"easy"},
+  {q:"Deepest point on Earth?",a:"Mariana Trench (~11 km deep)",hint:"In the Pacific Ocean",topic:"🌍 Geography",diff:"medium"},
+  {q:"What is the world's largest desert?",a:"Antarctica (cold desert)",hint:"Sahara is largest hot desert",topic:"🌍 Geography",diff:"medium"},
+  {q:"Capital of Kazakhstan?",a:"Astana",hint:"Formerly called Nur-Sultan",topic:"🌍 Geography",diff:"hard"},
+  {q:"Tallest mountain in Australia?",a:"Mount Kosciuszko (2,228 m)",hint:"In the Snowy Mountains, NSW",topic:"🌍 Geography",diff:"medium"},
+  // History
+  {q:"Year WWII ended?",a:"1945",hint:"Germany in May, Japan in September",topic:"🏛️ History",diff:"easy"},
+  {q:"First person in space?",a:"Yuri Gagarin (1961)",hint:"Soviet cosmonaut, 108-minute orbit",topic:"🏛️ History",diff:"easy"},
+  {q:"Who invented the telephone?",a:"Alexander Graham Bell (1876)",hint:"First words: 'Mr Watson, come here'",topic:"🏛️ History",diff:"easy"},
+  {q:"First people to walk on the Moon?",a:"Neil Armstrong & Buzz Aldrin (1969)",hint:"Apollo 11 mission",topic:"🏛️ History",diff:"easy"},
+  {q:"What was the Magna Carta?",a:"1215 charter limiting the English king's power",hint:"Signed by King John at Runnymede",topic:"🏛️ History",diff:"medium"},
+  {q:"Which treaty ended WWI?",a:"Treaty of Versailles (1919)",hint:"Placed heavy blame on Germany",topic:"🏛️ History",diff:"medium"},
+  {q:"Year the Berlin Wall fell?",a:"1989",hint:"Cold War ended shortly after",topic:"🏛️ History",diff:"medium"},
+  {q:"What ancient civilisation built Machu Picchu?",a:"The Incas (~1450 AD)",hint:"In present-day Peru",topic:"🏛️ History",diff:"medium"},
+  // Tech
+  {q:"What does HTML stand for?",a:"HyperText Markup Language",hint:"Structures every web page",topic:"💻 Tech",diff:"easy"},
+  {q:"What year was the first iPhone released?",a:"2007",hint:"Steve Jobs unveiled it at Macworld",topic:"💻 Tech",diff:"easy"},
+  {q:"What does CPU stand for?",a:"Central Processing Unit",hint:"The 'brain' of the computer",topic:"💻 Tech",diff:"easy"},
+  {q:"What does RAM stand for?",a:"Random Access Memory",hint:"Temporary fast-access storage",topic:"💻 Tech",diff:"easy"},
+  {q:"Best language for AI and data science?",a:"Python",hint:"Named after Monty Python",topic:"💻 Tech",diff:"medium"},
+  {q:"Who invented the World Wide Web?",a:"Tim Berners-Lee (1991)",hint:"Different from the internet itself",topic:"💻 Tech",diff:"medium"},
+  {q:"What is an API?",a:"Application Programming Interface — lets apps talk to each other",hint:"Like a waiter taking your order to the kitchen",topic:"💻 Tech",diff:"medium"},
+  {q:"What year was Google founded?",a:"1998",hint:"By Larry Page and Sergey Brin at Stanford",topic:"💻 Tech",diff:"medium"},
+  {q:"What does 'Open Source' mean?",a:"Software with publicly available source code anyone can use or modify",hint:"Linux and Android are examples",topic:"💻 Tech",diff:"hard"},
+  // Sports
+  {q:"Which country has won the most FIFA World Cups?",a:"Brazil (5 titles)",hint:"1958, 62, 70, 94, 2002",topic:"🏆 Sports",diff:"easy"},
+  {q:"How many players on court in basketball?",a:"5 per side (10 total)",hint:"Plus substitutes on the bench",topic:"🏆 Sports",diff:"easy"},
+  {q:"What surface is Wimbledon played on?",a:"Grass",hint:"The only Grand Slam still on grass",topic:"🏆 Sports",diff:"easy"},
+  {q:"Usain Bolt's 100m world record?",a:"9.58 seconds (2009, Berlin)",hint:"Still unbroken as of 2025",topic:"🏆 Sports",diff:"medium"},
+  {q:"Most Grand Slam titles in men's tennis?",a:"Novak Djokovic (24)",hint:"Overtook Nadal (22) and Federer (20)",topic:"🏆 Sports",diff:"medium"},
+  {q:"Michael Jordan's career PPG average?",a:"30.1 PPG — highest in NBA history",hint:"6× NBA Champion, 6× Finals MVP",topic:"🏆 Sports",diff:"medium"},
+  {q:"Which country hosted the 2000 Summer Olympics?",a:"Australia (Sydney)",hint:"Opening ceremony at Stadium Australia",topic:"🏆 Sports",diff:"easy"},
+  {q:"Most F1 World Championships?",a:"Schumacher & Hamilton — 7 each",hint:"Record shared since Hamilton won in 2020",topic:"🏆 Sports",diff:"hard"},
+  {q:"Most Olympic gold medals ever?",a:"Michael Phelps — 23 golds",hint:"American swimmer, 2000–2016",topic:"🏆 Sports",diff:"hard"},
+  // Language
+  {q:"'Neko' in Japanese means?",a:"🐱 Cat",hint:"Sounds like 'neck-oh'",topic:"🌏 Language",diff:"easy"},
+  {q:"'Hola' in Spanish means?",a:"Hello",hint:"Most common Spanish greeting",topic:"🌏 Language",diff:"easy"},
+  {q:"'Merci' in French means?",a:"Thank you",hint:"'Merci beaucoup' = thank you very much",topic:"🌏 Language",diff:"easy"},
+  {q:"'Bonjour' in French means?",a:"Good day / Hello",hint:"'Bon' = good, 'jour' = day",topic:"🌏 Language",diff:"easy"},
+  {q:"German word 'Gift' actually means?",a:"Poison (NOT a present!)",hint:"Classic false friend — beware!",topic:"🌏 Language",diff:"medium"},
+  {q:"Mandarin word for cat?",a:"Māo (猫)",hint:"Sounds just like what a cat says!",topic:"🌏 Language",diff:"medium"},
+  {q:"What language family does Spanish belong to?",a:"Romance languages (Latin-derived)",hint:"Also includes French, Italian, Portuguese, Romanian",topic:"🌏 Language",diff:"medium"},
+  {q:"How do you say 10 in Japanese?",a:"Juu (十)",hint:"Ichi, ni, san, shi, go, roku, nana, hachi, ku, juu",topic:"🌏 Language",diff:"medium"},
+  {q:"'Embarazada' in Spanish means?",a:"Pregnant — NOT embarrassed!",hint:"Most famous Spanish false friend",topic:"🌏 Language",diff:"hard"},
+  {q:"What language family does Mandarin belong to?",a:"Sino-Tibetan language family",hint:"Also includes Cantonese and Tibetan",topic:"🌏 Language",diff:"hard"},
 ];
 
-const flashcards = [
-  { q:"What does 'Neko' mean in Japanese?", a:"🐱 Cat", hint:"Sounds like 'neck-oh'" },
-  { q:"What does 'Hana' mean in Japanese?", a:"🌸 Flower", hint:"Think 'hana = flower blooming'" },
-  { q:"Michael Jordan's career PPG average?", a:"30.1 PPG", hint:"He was the GOAT scorer" },
-  { q:"What colour is 'Ao' in Japanese?", a:"🔵 Blue", hint:"Ao sounds like 'ow' — the blue sky ows" },
-  { q:"What is LeBron James known for statistically?", a:"27.2 PPG avg + 7x+ NBA Finals", hint:"King James" },
-  { q:"What technique uses rooms to remember lists?", a:"🏛 Memory Palace", hint:"Also called Method of Loci" },
-  { q:"What is 'Spaced Repetition'?", a:"Reviewing info at increasing time intervals", hint:"Beats cramming every time" },
-  { q:"What does 'Tsuki' mean in Japanese?", a:"🌙 Moon", hint:"'Tsuki' — picture the moon with a ski on it" },
-  { q:"How many points did Kobe Bryant score in his career?", a:"33,643 points", hint:"5× NBA Champion" },
-  { q:"What's better for memory — re-reading or self-testing?", a:"Self-testing (Active Recall)", hint:"Your brain needs to work hard to remember!" },
-  { q:"What does 'Ringo' mean in Japanese?", a:"🍎 Apple", hint:"Ringo Starr eating an apple" },
-  { q:"Shaquille O'Neal won how many NBA Championships?", a:"4× NBA Champion", hint:"With Lakers (3) + Heat (1)" },
-];
+// =====================================================================
+// STATE
+// =====================================================================
+const TOPICS=Object.keys(BANK);
+let currentDiff="medium",currentTopic="science",currentQIdx=0,filteredQs=[];
+let fcDiff="medium",fcTopic="all",fcCards=[],fcIdx=0,fcFlipped=false;
+let phase="study",studyTimer=null,timerRunning=false,studySecondsLeft=60,userAnswer="";
+let streak=parseInt(localStorage.getItem("mg_streak")||"0");
+let scores=JSON.parse(localStorage.getItem("mg_scores")||"{}");
 
-const weekPlan = [
-  { day:"Monday",    emoji:"📝", task:"<strong>Word Recall</strong> — memorise 10 random words. Test yourself 30 min later without looking." },
-  { day:"Tuesday",   emoji:"🖼", task:"<strong>Emoji Sequence</strong> — memorise 8 emojis in exact order. Sketch them from memory." },
-  { day:"Wednesday", emoji:"🗺", task:"<strong>Map Memory</strong> — study a map of Australia for 2 min. Sketch the states from memory." },
-  { day:"Thursday",  emoji:"🔢", task:"<strong>Number Sequence</strong> — memorise a 10-digit number. Type it back perfectly." },
-  { day:"Friday",    emoji:"🌏", task:"<strong>Language</strong> — learn 5–6 words in Japanese (or any language you like). Recall them at dinner." },
-  { day:"Saturday",  emoji:"🏀", task:"<strong>Sports Stats</strong> — memorise key stats for 5 players. Quiz yourself before bed." },
-  { day:"Sunday",    emoji:"🏛", task:"<strong>Memory Palace</strong> — place 6 crazy images in your room. Walk through it mentally to recall them all." },
-];
-
-// ===== STATE =====
-let currentDay = new Date().getDay(); // 0=Sun, adjust
-currentDay = currentDay === 0 ? 6 : currentDay - 1; // Mon=0
-
-let phase = "study"; // study | recall | result
-let studyTimer = null;
-let studySecondsLeft = 60;
-let userAnswer = "";
-let completedDays = JSON.parse(localStorage.getItem("mg_done") || "[]");
-let streak = parseInt(localStorage.getItem("mg_streak") || "0");
-let cardIndex = 0;
-let cardOrder = [...Array(flashcards.length).keys()];
-let cardFlipped = false;
-
-// ===== INIT =====
-document.getElementById("streakNum").textContent = streak;
-
-function init() {
-  renderDayNav();
-  renderChallenge();
-  renderFlashcard();
-  renderWeekPlan();
-  updateProgress();
+// =====================================================================
+// INIT
+// =====================================================================
+function init(){
+  document.getElementById("streakNum").textContent=streak;
+  renderTopicBtns("topicRow",false);
+  renderTopicBtns("fcTopicRow",true);
+  buildFilteredQs(); renderChallenge();
+  buildFCDeck(); renderFlashcard();
+  renderWeekPlan(); renderStats(); updateProgress();
 }
 
-function updateProgress() {
-  const pct = (completedDays.length / 7) * 100;
-  document.getElementById("weekProgress").style.width = pct + "%";
-}
-
-// ===== TABS =====
-function switchTab(name) {
-  ["daily","flashcards","week"].forEach(t => {
-    document.getElementById("tab-"+t).classList.toggle("hidden", t !== name);
+function renderTopicBtns(elId,hasAll){
+  const el=document.getElementById(elId);
+  const isFc=hasAll;
+  let html="";
+  if(hasAll) html+=`<button class="topic-btn ${fcTopic==="all"?"active":""}" onclick="setFCTopic('all')">🎲 All</button>`;
+  TOPICS.forEach(t=>{
+    if(isFc) html+=`<button class="topic-btn ${fcTopic===t?"active":""}" onclick="setFCTopic('${t}')">${BANK[t].emoji}</button>`;
+    else     html+=`<button class="topic-btn ${currentTopic===t?"active":""}" onclick="setTopic('${t}')">${BANK[t].emoji} ${BANK[t].label.split(" ")[0]}</button>`;
   });
-  document.querySelectorAll(".tab-btn").forEach((b,i) => {
-    const names = ["daily","flashcards","week"];
-    b.classList.toggle("active", names[i] === name);
-  });
+  el.innerHTML=html;
 }
 
-// ===== DAY NAV =====
-function renderDayNav() {
-  const nav = document.getElementById("dayNav");
-  nav.innerHTML = days.map(d => {
-    let cls = d.id === currentDay ? "active" : completedDays.includes(d.id) ? "done" : "";
-    return `<button class="day-btn ${cls}" onclick="selectDay(${d.id})">${d.short}<br><span style="font-size:0.7rem">${d.emoji}</span></button>`;
+function setTopic(t){currentTopic=t;currentQIdx=0;phase="study";clearTimer();userAnswer="";renderTopicBtns("topicRow",false);buildFilteredQs();renderChallenge();}
+function setFCTopic(t){fcTopic=t;fcIdx=0;renderTopicBtns("fcTopicRow",true);buildFCDeck();renderFlashcard();}
+function buildFilteredQs(){filteredQs=BANK[currentTopic][currentDiff]||[];if(currentQIdx>=filteredQs.length)currentQIdx=0;}
+function buildFCDeck(){
+  let pool=fcTopic==="all"?ALL_CARDS:ALL_CARDS.filter(c=>c.topic.toLowerCase().includes(BANK[fcTopic]?.label.split(" ")[0].toLowerCase()||fcTopic));
+  fcCards=pool.filter(c=>c.diff===fcDiff);
+  if(!fcCards.length)fcCards=pool;
+  fcIdx=0;fcFlipped=false;
+}
+
+// =====================================================================
+// TABS
+// =====================================================================
+function switchTab(name){
+  ["daily","flashcards","week","stats"].forEach(t=>document.getElementById("tab-"+t).classList.toggle("hidden",t!==name));
+  document.querySelectorAll(".tab-btn").forEach((b,i)=>b.classList.toggle("active",["daily","flashcards","week","stats"][i]===name));
+  if(name==="stats")renderStats();
+}
+
+// =====================================================================
+// DIFFICULTY
+// =====================================================================
+function setDiff(d){
+  currentDiff=d;currentQIdx=0;phase="study";clearTimer();userAnswer="";
+  document.querySelectorAll("#tab-daily .diff-btn").forEach(b=>b.classList.toggle("active",b.classList.contains(d)));
+  buildFilteredQs();renderChallenge();
+}
+function setFCDiff(d){
+  fcDiff=d;
+  document.querySelectorAll("#tab-flashcards .diff-btn").forEach(b=>b.classList.toggle("active",b.classList.contains(d)));
+  buildFCDeck();renderFlashcard();
+}
+
+// =====================================================================
+// CHALLENGE
+// =====================================================================
+function renderChallenge(){
+  buildFilteredQs();
+  const area=document.getElementById("challengeArea");
+  if(!filteredQs.length){area.innerHTML=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:32px;text-align:center;color:var(--muted)">No questions for this combination yet.</div>`;return;}
+  const c=filteredQs[currentQIdx];
+  document.getElementById("shuffleBadge").textContent=`🎲 Question ${currentQIdx+1} of ${filteredQs.length}`;
+  const dc=`diff-${currentDiff}`;
+  let html=`<div class="challenge-header pop"><div><span class="challenge-tag ${BANK[currentTopic].tagClass}">${BANK[currentTopic].emoji} ${BANK[currentTopic].label}</span><span class="diff-badge ${dc}">${currentDiff.toUpperCase()}</span></div><div class="challenge-title">${c.title}</div><div class="challenge-desc">${c.desc}</div></div>`;
+  if(phase==="study")html+=renderStudy(c);
+  else if(phase==="recall")html+=renderRecall(c);
+  else html+=`<div class="tip-card"><strong>💡 Memory Tip</strong>Use vivid, bizarre associations — the stranger the image, the better it sticks in your brain!</div>`+renderResult(c);
+  area.innerHTML=html;
+}
+
+function renderStudy(c){
+  const secs={easy:75,medium:60,hard:45}[currentDiff];
+  return `<div class="phase-banner pop"><div class="phase-icon">👀</div><div><div class="phase-text">STUDY PHASE</div><div class="phase-sub">Memorise everything — start timer when ready</div></div></div>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:12px">
+    <div class="timer-ring"><svg width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="26" fill="none" stroke="#2a2a40" stroke-width="5"/><circle id="timerCircle" cx="30" cy="30" r="26" fill="none" stroke="#f7c948" stroke-width="5" stroke-dasharray="163.4" stroke-dashoffset="0" stroke-linecap="round"/></svg><div class="timer-num" id="timerNum">${secs}</div></div>
+    <div><div style="font-weight:700">Study Timer</div><div style="font-size:.8rem;color:var(--muted)">${secs}s · ${currentDiff}</div></div>
+  </div>
+  <div class="items-grid">${c.items.map(i=>`<div class="item-chip"><span>${i.e}</span>${i.w}</div>`).join("")}</div>
+  <div class="btn-row"><button class="btn btn-primary" onclick="startTimer()">▶ Start Timer</button><button class="btn btn-secondary" onclick="skipToRecall()">Skip →</button></div>`;
+}
+
+function renderRecall(c){
+  return `<div class="phase-banner pop"><div class="phase-icon">✍️</div><div><div class="phase-text">RECALL PHASE</div><div class="phase-sub">No peeking — write everything you remember</div></div></div>
+  <div class="recall-area"><textarea id="recallInput" placeholder="Write what you remember…" oninput="userAnswer=this.value"></textarea>
+  <div class="btn-row"><button class="btn btn-primary" onclick="checkAnswer()">Check My Answer ✓</button></div></div>`;
+}
+
+function renderResult(c){
+  const score=calculateScore(c);
+  const stars=score>=80?"⭐⭐⭐":score>=50?"⭐⭐":"⭐";
+  const msg=score>=80?"Excellent memory!":score>=50?"Good effort — keep going!":"Keep practising!";
+  return `<div class="congrats pop"><div class="big">${stars}</div><div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:var(--teal);margin-top:6px">${msg}</div><div class="score-row" style="justify-content:center"><div class="score-badge">${score}%</div><div class="score-label">recalled</div></div></div>
+  <div class="phase-banner"><div class="phase-icon">📖</div><div><div class="phase-text">ANSWER KEY</div></div></div>
+  <div class="items-grid">${c.items.map(i=>`<div class="item-chip revealed"><span>${i.e}</span>${i.w}</div>`).join("")}</div>
+  <div class="btn-row"><button class="btn btn-secondary" onclick="retryChallenge()">🔄 Retry</button><button class="btn btn-secondary" onclick="nextQuestion()">Next →</button><button class="btn btn-primary" onclick="randomChallenge()">🎲 Random</button></div>`;
+}
+
+function calculateScore(c){
+  if(!userAnswer)return 0;
+  const ans=userAnswer.toLowerCase();
+  let hits=0;
+  c.items.forEach(i=>{const kw=i.w.toLowerCase().replace(/[^a-z0-9 ]/g,"").split(/[\s\-=,→()/]+/);kw.forEach(k=>{if(k.length>2&&ans.includes(k))hits++;});});
+  return Math.min(100,Math.round((hits/(c.items.length*1.5))*100));
+}
+
+function startTimer(){
+  if(timerRunning)return;timerRunning=true;
+  const secs={easy:75,medium:60,hard:45}[currentDiff];studySecondsLeft=secs;
+  studyTimer=setInterval(()=>{
+    studySecondsLeft--;
+    const el=document.getElementById("timerNum"),circle=document.getElementById("timerCircle");
+    if(el)el.textContent=studySecondsLeft;
+    if(circle)circle.style.strokeDashoffset=163.4*(1-studySecondsLeft/secs);
+    if(studySecondsLeft<=0){clearTimer();skipToRecall();}
+  },1000);
+}
+function clearTimer(){clearInterval(studyTimer);timerRunning=false;}
+function skipToRecall(){clearTimer();userAnswer="";phase="recall";renderChallenge();}
+function checkAnswer(){
+  userAnswer=document.getElementById("recallInput")?.value||"";
+  if(!userAnswer.trim()){showToast("Write something first! ✍️");return;}
+  recordScore(currentTopic,calculateScore(filteredQs[currentQIdx]));
+  phase="result";renderChallenge();
+}
+function retryChallenge(){userAnswer="";phase="study";renderChallenge();}
+function nextQuestion(){currentQIdx=(currentQIdx+1)%filteredQs.length;userAnswer="";phase="study";clearTimer();renderChallenge();}
+function randomChallenge(){
+  currentTopic=TOPICS[Math.floor(Math.random()*TOPICS.length)];
+  currentQIdx=0;userAnswer="";phase="study";clearTimer();
+  renderTopicBtns("topicRow",false);renderChallenge();
+}
+
+function recordScore(topic,score){
+  if(!scores[topic])scores[topic]={total:0,count:0};
+  scores[topic].total+=score;scores[topic].count++;
+  streak++;
+  localStorage.setItem("mg_scores",JSON.stringify(scores));
+  localStorage.setItem("mg_streak",streak);
+  document.getElementById("streakNum").textContent=streak;
+  updateProgress();showToast("🔥 Streak: "+streak);
+}
+function updateProgress(){
+  const total=Object.values(scores).reduce((a,v)=>a+v.count,0);
+  document.getElementById("weekProgress").style.width=Math.min(100,total*4)+"%";
+}
+
+// =====================================================================
+// STATS
+// =====================================================================
+function renderStats(){
+  const total=Object.values(scores).reduce((a,v)=>a+v.count,0);
+  const totalScore=Object.values(scores).reduce((a,v)=>a+v.total,0);
+  const avg=total?Math.round(totalScore/total):0;
+  document.getElementById("statStreak").textContent=streak;
+  document.getElementById("statDone").textContent=total;
+  document.getElementById("statScore").textContent=avg+"%";
+  document.getElementById("topicStats").innerHTML=TOPICS.map(t=>{
+    const s=scores[t];
+    if(!s)return`<div class="week-row"><div class="week-day">${BANK[t].emoji}<small>${t}</small></div><div style="color:var(--muted);font-size:.83rem">No sessions yet</div></div>`;
+    const a=Math.round(s.total/s.count);
+    return`<div class="week-row"><div class="week-day">${BANK[t].emoji}<small>${t}</small></div><div><div style="font-weight:700;font-size:.88rem">${s.count} session${s.count>1?"s":""}</div><div style="font-size:.8rem;color:var(--muted)">Avg score: ${a}%</div></div></div>`;
   }).join("");
 }
+function resetStats(){if(!confirm("Reset all stats?"))return;scores={};streak=0;localStorage.removeItem("mg_scores");localStorage.removeItem("mg_streak");document.getElementById("streakNum").textContent=0;renderStats();updateProgress();showToast("Stats reset");}
 
-function selectDay(id) {
-  currentDay = id;
-  phase = "study";
-  clearTimer();
-  renderDayNav();
-  renderChallenge();
+// =====================================================================
+// FLASHCARDS
+// =====================================================================
+function renderFlashcard(){
+  if(!fcCards.length)return;
+  const c=fcCards[fcIdx%fcCards.length];
+  document.getElementById("fcFront").textContent=c.q;
+  document.getElementById("fcBack").textContent=c.a;
+  document.getElementById("fcHint").textContent=c.hint;
+  document.getElementById("fcTopic").textContent=c.topic;
+  document.getElementById("cardIndex").textContent=(fcIdx%fcCards.length)+1;
+  document.getElementById("cardTotal").textContent=fcCards.length;
+  document.getElementById("flashcard").classList.remove("flipped");
+  fcFlipped=false;
+}
+function flipCard(){document.getElementById("flashcard").classList.toggle("flipped");fcFlipped=!fcFlipped;}
+function cardResult(r){
+  if(!fcFlipped){showToast("Flip the card first!");return;}
+  fcIdx++;renderFlashcard();
+  showToast({hard:"💪 Coming back soon!",ok:"👍 Keep going!",easy:"✅ Locked in!"}[r]);
 }
 
-// ===== CHALLENGE =====
-function renderChallenge() {
-  const c = challenges[currentDay];
-  const d = days[currentDay];
-  const tagClass = {recall:"tag-recall", visual:"tag-visual", lang:"tag-lang", spatial:"tag-spatial"}[d.tag];
-
-  if (completedDays.includes(currentDay) && phase !== "result") {
-    phase = "result";
-  }
-
-  let html = `
-    <div class="challenge-header pop">
-      <div class="challenge-tag ${tagClass}">${d.emoji} ${d.tagLabel}</div>
-      <div class="challenge-title">${c.title}</div>
-      <div class="challenge-desc">${c.desc}</div>
-    </div>
-  `;
-
-  if (phase === "study") {
-    html += renderStudyPhase(c, d);
-  } else if (phase === "recall") {
-    html += renderRecallPhase(c, d);
-  } else {
-    html += `<div class="tip-card"><strong>💡 Memory Tip</strong> ${c.tip}</div>`;
-    html += renderResultPhase(c, d);
-  }
-
-  document.getElementById("challengeArea").innerHTML = html;
-  if (phase === "study") attachStudyTimer(c);
+// =====================================================================
+// WEEK PLAN
+// =====================================================================
+const weekPlan=[
+  {day:"Mon",emoji:"🔬",task:"<strong>Science</strong> — animals, elements, space facts, body systems, physics laws"},
+  {day:"Tue",emoji:"🌍",task:"<strong>Geography</strong> — world capitals, mountains, rivers, population, records"},
+  {day:"Wed",emoji:"🏛️",task:"<strong>History</strong> — ancient wonders, famous leaders, WWII dates, revolutions"},
+  {day:"Thu",emoji:"💻",task:"<strong>Tech</strong> — brands, programming languages, AI terms, tech history"},
+  {day:"Fri",emoji:"🏆",task:"<strong>Sports</strong> — NBA, World Cup, tennis Grand Slams, F1, Olympics"},
+  {day:"Sat",emoji:"🌏",task:"<strong>Languages</strong> — Japanese, Spanish, French, Mandarin, false friends"},
+  {day:"Sun",emoji:"🎲",task:"<strong>Free day</strong> — hit 🎲 Random or revisit your weakest topic to level up!"},
+];
+function renderWeekPlan(){
+  document.getElementById("weekGrid").innerHTML=weekPlan.map(r=>`<div class="week-row"><div class="week-day">${r.emoji}<small>${r.day}</small></div><div class="week-task">${r.task}</div></div>`).join("");
 }
 
-function renderStudyPhase(c, d) {
-  const secs = [60, 45, 60, 45, 90, 90, 90][currentDay];
-  return `
-    <div class="phase-banner pop">
-      <div class="phase-icon">👀</div>
-      <div>
-        <div class="phase-text">STUDY PHASE</div>
-        <div class="phase-sub">Memorise everything below — timer starts when you're ready</div>
-      </div>
-    </div>
-    <div style="display:flex; align-items:center; gap:16px; margin-bottom:14px">
-      <div class="timer-ring">
-        <svg width="64" height="64" viewBox="0 0 64 64">
-          <circle cx="32" cy="32" r="28" fill="none" stroke="#2a2a40" stroke-width="5"/>
-          <circle id="timerCircle" cx="32" cy="32" r="28" fill="none" stroke="#f7c948" stroke-width="5"
-            stroke-dasharray="175.9" stroke-dashoffset="0" stroke-linecap="round"/>
-        </svg>
-        <div class="timer-num" id="timerNum">${secs}</div>
-      </div>
-      <div>
-        <div style="font-weight:700">Study Timer</div>
-        <div style="font-size:0.82rem; color:var(--muted)">Timer counts down once started</div>
-      </div>
-    </div>
-    <div class="items-grid">
-      ${c.items.map(i => `<div class="item-chip"><span>${i.e}</span>${i.w}</div>`).join("")}
-    </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="startTimer()">▶ Start Timer</button>
-      <button class="btn btn-secondary" onclick="skipToRecall()">Skip →</button>
-    </div>
-  `;
-}
-
-function renderRecallPhase(c, d) {
-  const placeholder = {
-    words: "Type the words you remember, separated by commas…",
-    order: "Type the emoji names in order, e.g. Rocket, Tree, Cat…",
-    facts: "Type what you remember — city positions, stats, translations…",
-    sequence: "Type the 10 digits in exact order…",
-    palace: "Name the 6 items and where you placed them in your room…",
-  }[c.recallType] || "Type what you remember…";
-
-  return `
-    <div class="phase-banner pop">
-      <div class="phase-icon">✍️</div>
-      <div>
-        <div class="phase-text">RECALL PHASE</div>
-        <div class="phase-sub">No peeking! Write down everything you can remember</div>
-      </div>
-    </div>
-    <div class="recall-area">
-      <textarea id="recallInput" placeholder="${placeholder}" oninput="userAnswer=this.value"></textarea>
-      <div class="btn-row">
-        <button class="btn btn-primary" onclick="checkAnswer()">Check My Answer ✓</button>
-      </div>
-    </div>
-  `;
-}
-
-function renderResultPhase(c, d) {
-  const score = calculateScore(c);
-  const stars = score >= 80 ? "⭐⭐⭐" : score >= 50 ? "⭐⭐" : "⭐";
-  const msg = score >= 80 ? "Incredible memory!" : score >= 50 ? "Good effort — keep practising!" : "Keep going — it gets easier!";
-
-  return `
-    <div class="congrats pop">
-      <div class="big">${stars}</div>
-      <div style="font-family:'Bebas Neue',sans-serif; font-size:2rem; color:var(--accent3); margin-top:8px">${msg}</div>
-      <div style="margin-top:6px; color:var(--muted); font-size:0.88rem">You recalled roughly ${score}% of the items</div>
-    </div>
-    <div class="phase-banner" style="margin-top:0">
-      <div class="phase-icon">📖</div>
-      <div>
-        <div class="phase-text">ANSWER KEY</div>
-        <div class="phase-sub">Here's everything you should have remembered</div>
-      </div>
-    </div>
-    <div class="items-grid">
-      ${c.items.map(i => `<div class="item-chip revealed"><span>${i.e}</span>${i.w}</div>`).join("")}
-    </div>
-    <div class="btn-row" style="margin-top:4px">
-      <button class="btn btn-secondary" onclick="retryChallenge()">🔄 Retry</button>
-      <button class="btn btn-primary" onclick="nextDay()">Next Day →</button>
-    </div>
-  `;
-}
-
-function calculateScore(c) {
-  if (!userAnswer) return 0;
-  const ans = userAnswer.toLowerCase();
-  let hits = 0;
-  c.items.forEach(i => {
-    const keywords = i.w.toLowerCase().replace(/[^a-z0-9 ]/g, "").split(/[\s\-=,]+/);
-    keywords.forEach(kw => { if (kw.length > 2 && ans.includes(kw)) hits++; });
-  });
-  return Math.min(100, Math.round((hits / (c.items.length * 1.5)) * 100));
-}
-
-// ===== TIMER =====
-let timerRunning = false;
-function attachStudyTimer(c) {}
-
-function startTimer() {
-  if (timerRunning) return;
-  timerRunning = true;
-  const secs = [60, 45, 60, 45, 90, 90, 90][currentDay];
-  studySecondsLeft = secs;
-  const circumference = 175.9;
-  studyTimer = setInterval(() => {
-    studySecondsLeft--;
-    const el = document.getElementById("timerNum");
-    const circle = document.getElementById("timerCircle");
-    if (el) el.textContent = studySecondsLeft;
-    if (circle) {
-      const offset = circumference * (1 - studySecondsLeft / secs);
-      circle.style.strokeDashoffset = offset;
-    }
-    if (studySecondsLeft <= 0) {
-      clearTimer();
-      skipToRecall();
-    }
-  }, 1000);
-}
-
-function clearTimer() {
-  clearInterval(studyTimer);
-  timerRunning = false;
-}
-
-function skipToRecall() {
-  clearTimer();
-  userAnswer = "";
-  phase = "recall";
-  renderChallenge();
-}
-
-function checkAnswer() {
-  userAnswer = document.getElementById("recallInput")?.value || "";
-  if (!userAnswer.trim()) { showToast("Write something first! ✍️"); return; }
-  phase = "result";
-  markDone(currentDay);
-  renderChallenge();
-}
-
-function retryChallenge() {
-  userAnswer = "";
-  phase = "study";
-  renderChallenge();
-}
-
-function nextDay() {
-  const next = (currentDay + 1) % 7;
-  selectDay(next);
-}
-
-function markDone(id) {
-  if (!completedDays.includes(id)) {
-    completedDays.push(id);
-    localStorage.setItem("mg_done", JSON.stringify(completedDays));
-    streak++;
-    localStorage.setItem("mg_streak", streak);
-    document.getElementById("streakNum").textContent = streak;
-    showToast("🔥 Day complete! Streak: " + streak);
-  }
-  renderDayNav();
-  updateProgress();
-}
-
-// ===== FLASHCARDS =====
-function renderFlashcard() {
-  const card = flashcards[cardOrder[cardIndex]];
-  document.getElementById("fcFront").textContent = card.q;
-  document.getElementById("fcBack").textContent = card.a;
-  document.getElementById("fcHint").textContent = card.hint;
-  document.getElementById("cardIndex").textContent = cardIndex + 1;
-  document.getElementById("cardTotal").textContent = flashcards.length;
-  const fc = document.getElementById("flashcard");
-  fc.classList.remove("flipped");
-  cardFlipped = false;
-}
-
-function flipCard() {
-  document.getElementById("flashcard").classList.toggle("flipped");
-  cardFlipped = !cardFlipped;
-}
-
-function cardResult(rating) {
-  if (!cardFlipped) { showToast("Flip the card first!"); return; }
-  cardIndex = (cardIndex + 1) % flashcards.length;
-  renderFlashcard();
-  const msgs = { hard:"💪 We'll come back to that!", ok:"👍 Keep going!", easy:"✅ Locked in!" };
-  showToast(msgs[rating]);
-}
-
-// ===== WEEK PLAN =====
-function renderWeekPlan() {
-  document.getElementById("weekGrid").innerHTML = weekPlan.map((r,i) => `
-    <div class="week-row">
-      <div class="week-day">${r.emoji}<br>${r.day}<small>${days[i].tagLabel}</small></div>
-      <div class="week-task">${r.task}</div>
-    </div>
-  `).join("");
-}
-
-// ===== TOAST =====
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2400);
+// =====================================================================
+// TOAST
+// =====================================================================
+function showToast(msg){
+  const t=document.getElementById("toast");t.textContent=msg;t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2400);
 }
 
 init();
